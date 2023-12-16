@@ -87,14 +87,15 @@ void listar_funcionarios(const funcionario *funcionarios, int *num_funcionarios)
     printf("Nome: %s\nTelefone: %d\nCPF: %s\n\n",
      funcionarios[i].nome, funcionarios[i].telefone, funcionarios[i].cpf);
   char alternative;
-  printf('Digite 1 para filtrar por profissão ou qualquer outro para voltar ao menu');
+  printf("Digite 1 para filtrar por profissão ou qualquer outro para voltar ao menu");
+  int mudar;
   scanf("%d", &mudar);
   switch (mudar) {
     case 1:
-     printf('Digite o cargo do funcionari0:\n\n')
+     printf("Digite o cargo do funcionari0:\n\n");
      char cargo_desejado;
-     scanf("%d" cargo_desejado);
-     for (int i = 0; i < num_funcionarios; i++) {
+     scanf("%s", &cargo_desejado);
+     for (int i = 0; i < *num_funcionarios; i++) {
         if (strcmp(funcionarios[i].cargo, cargo_desejado) == 0) {
             printf("Nome: %s\nTelefone: %d\nCPF: %s\nCargo: %s\n\n",
                    funcionarios[i].nome, funcionarios[i].telefone, funcionarios[i].cpf, funcionarios[i].cargo);
