@@ -9,27 +9,89 @@
 struct livro biblioteca[MAX_LIVROS];
 int numLivros = 0;
 
-void emprestimo_livro(void) {
-  char cpf[100];
-  printf("CPF do cliente ao qual irá retirar o livro: ");
-  scanf("%s", cpf);
+void emprestimo_livro() {
+    char cpf[MAX_NOME];
+    char isbn[MAX_NOME];
 
-  // Coloque aqui a lógica para empréstimo do livro
-}
+    // Obter CPF e ISBN do usuário
+    printf("CPF do cliente ao qual irá retirar o livro: ");
+    scanf("%s", cpf);
+    printf("ISBN do livro ao qual irá retirar: ");
+    scanf("%s", isbn);
 
-int buscar_livro_por_titulo(char *termo) {
-  int encontrado = 0;
-  for (int i = 0; i < numLivros; i++) {
-    if (strcasecmp(biblioteca[i].titulo, termo) == 0) {
-      printf("Livro encontrado:\n");
-      printf("Título: %s\n", biblioteca[i].titulo);
-      printf("Autor: %s\n", biblioteca[i].autor);
-      printf("Quantidade de cópias: %d\n", biblioteca[i].quant);
-      printf("Número do local: %d\n", biblioteca[i].local);
-      encontrado = 1;
-      return 1;
+    // Verificar se o cliente existe
+    FILE *clientes_file = fopen("clientes.txt", "r");
+    if (clientes_file == NULL) {
+        printf("Erro ao abrir o arquivo de clientes.\n");
+        return;
     }
-  }
+
+    int cliente_encontrado = 0;
+    Cliente cliente;
+    while (fscanf(clientes_file, "%s %s %s %s %d %d", cliente.nome, cliente.endereco, cliente.telefone, cliente.cpf, &cliente.id, &cliente.ativ) == 6) {
+        if (strcmp(cliente.cpf, cpf) == 0) {
+            cliente_encontrado = 1;
+            break;
+        }
+    }
+
+    fclose(clientes_file);
+
+    if (!cliente_encontrado) {
+        printf("Cliente com CPF %s não encontrado.\n", cpf);
+        return;
+    }
+
+    // Verificar se o livro existe
+    FILE *biblioteca_file = fopen("biblioteca.txt", "r");
+    if (biblioteca_file == NULL) {
+        printf("Erro ao abrir o arquivo da biblioteca.\n");
+        return;
+    }
+
+    int livro_encontrado = 0;
+    Livro livro;
+    while (fscanf(biblioteca_file, "%s %s %d %d %d %s", livro.titulo, livro.autor, &livro.quant, &livro.quant_disp, &livro.local, livro.isbn) == 6) {
+        if (strcmp(livro.isbn, isbn) == 0) {
+            livro_encontrado = 1;
+            break;
+        }
+    }
+
+    fclose(biblioteca_file);
+
+    if (!livro_encontrado) {
+        printf("Livro com ISBN %s não encontrado.\n", isbn);
+        return;
+    }
+
+    // Verificar se o livro está disponível
+    if (livro.quant_disp <= 0) {
+        printf("O livro não está disponível para empréstimo.\n");
+        return;
+    }
+
+    livro.quant_disp--;
+
+      livro.lista_cpfs = malloc(MAX_CPFS * sizeof(char *));
+      for (int i = 0; i < MAX_CPFS; i++) {
+        livro.lista_cpfs[i] = malloc((MAX_NOME + 1) * sizeof(char));
+      }
+
+    strcpy(livro.lista_cpfs[MAX_CPFS - 1], cliente.cpf);  // Adiciona o CPF à lista_cpfs
+
+    // Atualizar o arquivo da biblioteca com as modificações
+    FILE *biblioteca_atualizada = fopen("biblioteca.txt", "w");
+    if (biblioteca_atualizada == NULL) {
+        printf("Erro ao abrir o arquivo da biblioteca para atualização.\n");
+        return;
+    }
+
+    fprintf(biblioteca_atualizada, "%s %s %d %d %d %s\n", livro.titulo, livro.autor, livro.quant, livro.quant_disp, livro.local, livro.isbn);
+
+    fclose(biblioteca_atualizada);
+
+    printf("Empréstimo realizado com sucesso.\n");
 
   if (!encontrado) {
     return 0;
@@ -119,25 +181,41 @@ int menu_livro() {
 }
 
 void registrar_livro() {
-  if (numLivros < MAX_LIVROS) {
-    printf("\n === Registrar Livro ===\n");
+    FILE *file;
+    file = fopen("biblioteca.txt", "a");  // Open file in append mode
 
-    printf("Nome do livro: ");
-    scanf("%s", biblioteca[numLivros].titulo);
+    if (file == NULL) {
+        printf("Erro ao abrir o arquivo.\n");
+        return;
+    }
 
-    printf("Autor do livro: ");
-    scanf("%s", biblioteca[numLivros].autor);
+    if (numLivros < MAX_LIVROS) {
+        printf("\n === Registrar Livro ===\n");
 
-    printf("Quantidade de cópias do livro: ");
-    scanf("%d", &biblioteca[numLivros].quant);
+        printf("Nome do livro: ");
+        scanf("%s", biblioteca[numLivros].titulo);
+        fprintf(file, "Nome do livro: %s\n", biblioteca[numLivros].titulo);
 
-    printf("Número do local (número de quatro dígitos): ");
-    scanf("%d", &biblioteca[numLivros].local);
+        printf("Autor do livro: ");
+        scanf("%s", biblioteca[numLivros].autor);
+        fprintf(file, "Autor do livro: %s\n", biblioteca[numLivros].autor);
 
-    numLivros++;
-  } else {
-    printf("A biblioteca está cheia. Não é possível adicionar mais livros.\n");
-  }
+        printf("Quantidade de cópias do livro: ");
+        scanf("%d", &biblioteca[numLivros].quant);
+        fprintf(file, "Quantidade de cópias do livro: %d\n", biblioteca[numLivros].quant);
+
+        biblioteca[numLivros].quant_disp = biblioteca[numLivros].quant;
+
+        printf("Número do local (número de quatro dígitos): ");
+        scanf("%d", &biblioteca[numLivros].local);
+        fprintf(file, "Número do local: %d\n", biblioteca[numLivros].local);
+
+        numLivros++;
+    } else {
+        printf("A biblioteca está cheia. Não é possível adicionar mais livros.\n");
+    }
+
+    fclose(file);  // Close the file
 }
 
 bool validar_isbn(const char *isbn) {

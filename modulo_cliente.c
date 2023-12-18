@@ -1,6 +1,7 @@
 #include "modulo_cliente.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #define tamanho_max 100
 cliente clientes[tamanho_max];
@@ -52,13 +53,14 @@ void cadastrar_cliente(cliente *clientes, int *num_clientes) {
       printf("Digite o telefone do cliente: ");
       scanf("%s", clientes[*num_clientes].telefone);
 
-      clientes[*num_clientes].ativ = 1; // Adicione automaticamente a atividade.
+      clientes[*num_clientes].ativ = 1;
 
-      // Salve os detalhes do cliente no arquivo.
+      clientes[*num_clientes].id = *num_clientes + 1;
+
       fprintf(arquivo,
               "Nome: %s\nEndereço: %s\nTelefone: %s\nAtividade: %d\n\n",
               clientes[*num_clientes].nome, clientes[*num_clientes].endereco,
-              clientes[*num_clientes].telefone, clientes[*num_clientes].ativ);
+              clientes[*num_clientes].telefone, clientes[*num_clientes].ativ, clientes[*num_clientes].ativ);
 
       (*num_clientes)++;
       fclose(arquivo);
@@ -71,25 +73,33 @@ void cadastrar_cliente(cliente *clientes, int *num_clientes) {
 }
 
 void listar_clientes() {
-  FILE *arquivo;
-  arquivo = fopen("clientes.txt", "r"); // Abre o arquivo em modo de leitura
+    FILE *arquivo;
+    arquivo = fopen("clientes.txt", "r"); // Abre o arquivo em modo de leitura
 
-  if (arquivo == NULL) {
-    printf("Erro ao abrir o arquivo.\n");
-    return;
-  }
+    if (arquivo == NULL) {
+        printf("Erro ao abrir o arquivo.\n");
+        return;
+    }
 
-  printf("Lista de Clientes:\n");
+    Cliente clientes[MAX_REGISTROS];
+    int numClientes = 0;
 
-  char linha[100]; // Suponha que cada linha do arquivo tenha no máximo 100
-                   // caracteres
-  while (fgets(linha, sizeof(linha), arquivo) != NULL) {
-    printf("%s", linha);
-  }
+    printf("Lista de Clientes em Ordem Crescente pelo CPF:\n");
 
-  fclose(arquivo);
+    char linha[100];
+    while (fgets(linha, sizeof(linha), arquivo) != NULL && numClientes < MAX_REGISTROS) {
+        sscanf(linha, "%s %s", clientes[numClientes].nome, clientes[numClientes].cpf);
+        numClientes++;
+    }
 
-  
+    fclose(arquivo);
+    qsort(clientes, numClientes, sizeof(Cliente), compararPorCPF);
+    
+    for (int i = 0; i < numClientes; i++) {
+      if (clientes[i].ativ == 1) {
+        printf("Nome: %s, CPF: %s\n", clientes[i].nome, clientes[i].cpf);
+      }
+}
 }
 
 void editar_cliente() {

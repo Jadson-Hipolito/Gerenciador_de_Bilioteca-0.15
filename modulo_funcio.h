@@ -20,7 +20,6 @@ typedef struct funcio{
 void menu_funcio(void);
 void editar_funcionario();
 void cadastrar_funcionario(funcionario *funcionarios, int *num_funcionarios);
-void listar_funcionarios(const funcionario *funcionarios, int *num_funcionarios);
-// Outras funções relacionadas aos funcionários, se necessário
+void listar_funcionarios(const char *filename);
 
 #endif // FUNCIONARIO_H

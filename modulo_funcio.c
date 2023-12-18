@@ -25,7 +25,7 @@ void menu_funcio(void) {
     cadastrar_funcionario(funcionarios, &num_funcionarios);
     break;
   case 2:
-    listar_funcionarios(funcionarios, &num_funcionarios);
+    listar_funcionarios("funcionario.txt");
     break;
   case 3:
     editar_funcionario(funcionarios, &num_funcionarios);
@@ -82,27 +82,68 @@ void cadastrar_funcionario(funcionario *funcionarios, int *num_funcionarios) {
   }
 }
 
-void listar_funcionarios(const funcionario *funcionarios, int *num_funcionarios) {
-  for (int i = 0; i < *num_funcionarios; i++) {
-    printf("Nome: %s\nTelefone: %d\nCPF: %s\n\n",
-     funcionarios[i].nome, funcionarios[i].telefone, funcionarios[i].cpf);
-  char alternative;
-  printf("Digite 1 para filtrar por profissão ou qualquer outro para voltar ao menu");
-  int mudar;
-  scanf("%d", &mudar);
-  switch (mudar) {
-    case 1:
-     printf("Digite o cargo do funcionari0:\n\n");
-     char cargo_desejado;
-     scanf("%s", &cargo_desejado);
-     for (int i = 0; i < *num_funcionarios; i++) {
-        if (strcmp(funcionarios[i].cargo, cargo_desejado) == 0) {
+void listar_funcionarios(const char *filename) {
+    FILE *file = fopen(filename, "r");
+
+    if (file == NULL) {
+        printf("Erro ao abrir o arquivo.\n");
+        return;
+    }
+
+    int num_funcionarios;
+    fscanf(file, "%d", &num_funcionarios);
+
+    Funcionario *funcionarios = malloc(num_funcionarios * sizeof(Funcionario));
+
+    for (int i = 0; i < num_funcionarios; i++) {
+        fscanf(file, "%s %d %s %s %d",
+               funcionarios[i].nome, &funcionarios[i].telefone,
+               funcionarios[i].cpf, funcionarios[i].cargo, &funcionarios[i].ativ);
+    }
+
+    fclose(file);
+
+    Funcionario *temp = malloc(num_funcionarios * sizeof(Funcionario));
+    memcpy(temp, funcionarios, num_funcionarios * sizeof(Funcionario));
+
+    qsort(temp, num_funcionarios, sizeof(Funcionario), compararPorCPF);
+
+    printf("Lista de Funcionários Ativos em Ordem Crescente pelo CPF:\n");
+    for (int i = 0; i < num_funcionarios; i++) {
+        if (temp[i].ativ == 1) {
             printf("Nome: %s\nTelefone: %d\nCPF: %s\nCargo: %s\n\n",
-                   funcionarios[i].nome, funcionarios[i].telefone, funcionarios[i].cpf, funcionarios[i].cargo);
+                   temp[i].nome, temp[i].telefone,
+                   temp[i].cpf, temp[i].cargo);
         }
     }
-  }
- }
+
+    free(temp);
+    
+    printf("Digite o cargo desejado: ");
+    char cargo_desejado[tamanho_max];
+    scanf("%s", cargo_desejado);
+
+    Funcionario *temp_cargo = malloc(num_funcionarios * sizeof(Funcionario));
+    int num_temp_cargo = 0;
+
+    for (int i = 0; i < num_funcionarios; i++) {
+        if (funcionarios[i].ativ == 1 && strcmp(funcionarios[i].cargo, cargo_desejado) == 0) {
+            memcpy(&temp_cargo[num_temp_cargo], &funcionarios[i], sizeof(Funcionario));
+            num_temp_cargo++;
+        }
+    }
+
+    qsort(temp_cargo, num_temp_cargo, sizeof(Funcionario), compararPorCPF);
+
+    printf("Lista de Funcionários com Cargo %s em Ordem Crescente pelo CPF:\n", cargo_desejado);
+    for (int i = 0; i < num_temp_cargo; i++) {
+        printf("Nome: %s\nTelefone: %d\nCPF: %s\nCargo: %s\n\n",
+               temp_cargo[i].nome, temp_cargo[i].telefone,
+               temp_cargo[i].cpf, temp_cargo[i].cargo);
+    }
+
+    free(temp_cargo);
+    free(funcionarios);
 }
 
 void editar_funcionario() {
